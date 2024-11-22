@@ -1,12 +1,12 @@
-# CPSC 224 Final Project: [Your project name here]
+# CPSC 224 Final Project: MineSweeper
 
-### Project Description:
+### Project Description: GUI based minesweeper clone with java implementation.
 
 
 ### Team Information:
 
-- Team Name:  
-- Students on team:
-- Semester: Spring 2024
+- Team Name: 404 Not Found
+- Students on team: Liam Fitting
+- Semester: Fall 2024
 
 
