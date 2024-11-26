@@ -8,7 +8,7 @@ The objective is to uncover all the cells that don't contain mines.
 ### Team Information:
 
 - Team Name: 404 Not Found
-- Students on team: Liam Fitting
+- Students on team: Liam Fitting, Yusen Xia
 - Semester: Fall 2024
 
 
