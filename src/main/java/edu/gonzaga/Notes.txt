@@ -7,3 +7,13 @@ Liam Notes
             --> timer
             --> cell
             --> game
+11/28 -- classes needed:
+            --> board
+            --> timer
+            --> game
+         cell class done. Needs to be peer reviewed and tested for more complex methods.
+         TO DO:
+                --> create rest of functions acording to UML.
+                --> use swing to make view
+                --> construct game logic in main
+                --> test and iterate
