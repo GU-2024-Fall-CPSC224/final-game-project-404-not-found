@@ -17,3 +17,6 @@ Liam Notes
                 --> use swing to make view
                 --> construct game logic in main
                 --> test and iterate
+11/29 -- classes needed:
+            --> game
+            --> timer
