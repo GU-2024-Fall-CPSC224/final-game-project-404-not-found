@@ -30,6 +30,7 @@ public class MainGame {
         frame.setVisible(true);
          */
 
+
         //set up frame
         JFrame frame = new JFrame("Minesweeper");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -53,6 +54,7 @@ public class MainGame {
         //make visible
         frame.add(gridPanel);
         frame.setVisible(true);
+
 
     }
 }
