@@ -22,3 +22,9 @@ Liam Notes
             --> timer
 11/29 -- classes needed
             --> game
+to do:
+    fix screen sizing, make large enough and in center
+        --> difficulty
+        --> main game
+        --> end screen picture?
+    add sound effect when dead / hit a bomb
