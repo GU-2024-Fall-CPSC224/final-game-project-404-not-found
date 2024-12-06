@@ -1,13 +1,22 @@
 package edu.gonzaga;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.Locale;
 import java.util.Random;
 
 public class Minesweeper extends JFrame {
+    private String playerName;
     private int gridSize;
     private int numMines;
     private JButton[][] buttons;
@@ -20,9 +29,38 @@ public class Minesweeper extends JFrame {
     private JLabel timerLabel;
 
     public Minesweeper() {
+        Locale.setDefault(Locale.ENGLISH);
+
         setTitle("Minesweeper");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        // Ask for player name
+        askPlayerName();
+
+        // Show the difficulty selection menu
         setupMenu();
+    }
+
+    private void askPlayerName() {
+        playerName = JOptionPane.showInputDialog(
+                this,
+                "Please enter your name:",
+                "Player Name",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        // Ensure the player enters a valid name
+        if (playerName == null || playerName.trim().isEmpty()) {
+            playerName = "Player"; // Default name if none is provided
+        }
+
+        // Show a greeting message
+        JOptionPane.showMessageDialog(
+                this,
+                "Welcome, " + playerName + "! Let's play Minesweeper!",
+                "Welcome",
+                JOptionPane.INFORMATION_MESSAGE
+        );
     }
 
     private void setupMenu() {
@@ -37,15 +75,18 @@ public class Minesweeper extends JFrame {
                 options,
                 options[0]
         );
-
+    
         switch (choice) {
             case 0:
+                playSound("src/main/resources/start_game.wav"); // Play sound after selecting Easy
                 setupGame(8, 10);  // Easy
                 break;
             case 1:
+                playSound("src/main/resources/start_game.wav"); // Play sound after selecting Medium
                 setupGame(12, 20); // Medium
                 break;
             case 2:
+                playSound("src/main/resources/start_game.wav"); // Play sound after selecting Hard
                 setupGame(16, 40); // Hard
                 break;
             default:
@@ -141,6 +182,7 @@ public class Minesweeper extends JFrame {
         buttons[row][col].setText("X");
         buttons[row][col].setBackground(Color.RED);
         System.out.println("Mine clicked at (" + row + ", " + col + ")");
+        playSound("src/main/resources/boom.wav");
         gameOver(false);
     } else {
         if (adjacentMines > 0) {
@@ -204,23 +246,58 @@ public class Minesweeper extends JFrame {
 
     private void gameOver(boolean won) {
         timer.stop();
-        String message = won ? "You won in " + elapsedTime + " seconds!" : "Game Over!";
-        int choice = JOptionPane.showOptionDialog(
-                this,
-                message + "\nWould you like to play again?",
-                "Game Over",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                new String[]{"Restart", "Exit"},
-                "Restart"
-        );
-
-        if (choice == JOptionPane.YES_OPTION) {
-            restartGame();
-        } else {
-            System.exit(0);
+    
+        // Create the dialog
+        JDialog gameOverDialog = new JDialog(this, "Game Over", true);
+        gameOverDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        gameOverDialog.setLayout(new BorderLayout());
+    
+        // Add the image
+        JLabel imageLabel = new JLabel();
+        if (!won) {
+            try {
+                // Load and resize the image
+                ImageIcon icon = new ImageIcon("src/main/resources/boom.png"); // Adjust path as needed
+                Image scaledImage = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+                imageLabel.setIcon(new ImageIcon(scaledImage));
+            } catch (Exception e) {
+                System.err.println("Image loading failed: " + e.getMessage());
+            }
         }
+        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gameOverDialog.add(imageLabel, BorderLayout.CENTER);
+    
+        // Add the message
+        JPanel textPanel = new JPanel(new BorderLayout());
+        JLabel messageLabel = new JLabel(won ? "You won in " + elapsedTime + " seconds!" : "Game Over!");
+        messageLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        messageLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        textPanel.add(messageLabel, BorderLayout.NORTH);
+    
+        JLabel playAgainLabel = new JLabel("Would you like to play again?");
+        playAgainLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        playAgainLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        textPanel.add(playAgainLabel, BorderLayout.SOUTH);
+    
+        gameOverDialog.add(textPanel, BorderLayout.NORTH);
+    
+        // Add the buttons
+        JPanel buttonPanel = new JPanel();
+        JButton restartButton = new JButton("Restart");
+        restartButton.addActionListener(e -> {
+            gameOverDialog.dispose();
+            restartGame();
+        });
+        JButton exitButton = new JButton("Exit");
+        exitButton.addActionListener(e -> System.exit(0));
+        buttonPanel.add(restartButton);
+        buttonPanel.add(exitButton);
+        gameOverDialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+        // Show the dialog
+        gameOverDialog.pack();
+        gameOverDialog.setLocationRelativeTo(this);
+        gameOverDialog.setVisible(true);
     }
 
     private void restartGame() {
@@ -233,6 +310,18 @@ public class Minesweeper extends JFrame {
         setupMenu();                  // Reinitialize the game with a new difficulty
         revalidate();                 // Refresh the UI
         repaint();                    // Redraw the window
+    }
+
+        private void playSound(String filePath) {
+        try {
+            File soundFile = new File(filePath);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(soundFile);
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioStream);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            System.err.println("Error playing sound: " + e.getMessage());
+        }
     }
 
     private class CellClickListener implements ActionListener {
