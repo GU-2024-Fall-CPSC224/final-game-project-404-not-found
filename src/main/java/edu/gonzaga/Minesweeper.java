@@ -56,29 +56,37 @@ public class Minesweeper extends JFrame {
     private void setupGame(int gridSize, int numMines) {
         this.gridSize = gridSize;
         this.numMines = numMines;
-
+    
         buttons = new JButton[gridSize][gridSize];
         mines = new boolean[gridSize][gridSize];
         revealed = new boolean[gridSize][gridSize];
         flagged = new boolean[gridSize][gridSize];
-
+    
         setLayout(new BorderLayout());
         timerLabel = new JLabel("Time: 0 seconds");
+        timerLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center align the timer label
         add(timerLabel, BorderLayout.NORTH);
-
+    
         JPanel gridPanel = new JPanel(new GridLayout(gridSize, gridSize));
+        gridPanel.setPreferredSize(new Dimension(gridSize * 40, gridSize * 40)); // Set preferred size for grid panel
+    
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
                 buttons[row][col] = new JButton();
-                buttons[row][col].setFont(new Font("Arial", Font.BOLD, 14));
+                buttons[row][col].setFont(new Font("Arial", Font.BOLD, 12)); // Adjust font size
+                buttons[row][col].setHorizontalAlignment(SwingConstants.CENTER); // Center-align text horizontally
+                buttons[row][col].setVerticalAlignment(SwingConstants.CENTER);   // Center-align text vertically     
+                buttons[row][col].setMargin(new Insets(0, 0, 0, 0));       
                 buttons[row][col].addActionListener(new CellClickListener(row, col));
                 buttons[row][col].setComponentPopupMenu(createFlagMenu(row, col));
                 gridPanel.add(buttons[row][col]);
             }
         }
-        add(gridPanel, BorderLayout.CENTER);
 
-        pack();
+        add(gridPanel, BorderLayout.CENTER);
+    
+        pack(); 
+        setLocationRelativeTo(null); // Center the window
         setVisible(true);
     }
 
@@ -109,44 +117,56 @@ public class Minesweeper extends JFrame {
     private void placeMines() {
         Random random = new Random();
         int placedMines = 0;
-
+    
         while (placedMines < numMines) {
             int row = random.nextInt(gridSize);
             int col = random.nextInt(gridSize);
             if (!mines[row][col]) {
                 mines[row][col] = true;
                 placedMines++;
+                System.out.println("Mine placed at: (" + row + ", " + col + ")"); 
             }
         }
     }
 
     private void revealCell(int row, int col) {
-        if (row < 0 || row >= gridSize || col < 0 || col >= gridSize || revealed[row][col] || flagged[row][col]) return;
+    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize || revealed[row][col] || flagged[row][col]) {
+        return;
+    }
 
-        revealed[row][col] = true;
-        int adjacentMines = countAdjacentMines(row, col);
+    revealed[row][col] = true;
+    int adjacentMines = countAdjacentMines(row, col);
 
-        if (mines[row][col]) {
-            buttons[row][col].setText("X");
-            buttons[row][col].setBackground(Color.RED);
-            gameOver(false);
-        } else {
-            buttons[row][col].setText(adjacentMines > 0 ? String.valueOf(adjacentMines) : "");
+    if (mines[row][col]) {
+        buttons[row][col].setText("X");
+        buttons[row][col].setBackground(Color.RED);
+        System.out.println("Mine clicked at (" + row + ", " + col + ")");
+        gameOver(false);
+    } else {
+        if (adjacentMines > 0) {
+            buttons[row][col].setText(String.valueOf(adjacentMines));
             buttons[row][col].setEnabled(false);
+            buttons[row][col].setForeground(Color.BLACK); // Ensure text is visible
+            buttons[row][col].setBackground(null); // Clear background
+            System.out.println("Revealed cell at (" + row + ", " + col + ") with " + adjacentMines + " adjacent mines");
+        } else {
+            buttons[row][col].setText("");
+            buttons[row][col].setEnabled(false);
+            System.out.println("Revealed empty cell at (" + row + ", " + col + ")");
 
-            if (adjacentMines == 0) {
-                for (int dr = -1; dr <= 1; dr++) {
-                    for (int dc = -1; dc <= 1; dc++) {
-                        revealCell(row + dr, col + dc);
-                    }
+            // Recursively reveal surrounding cells
+            for (int dr = -1; dr <= 1; dr++) {
+                for (int dc = -1; dc <= 1; dc++) {
+                    revealCell(row + dr, col + dc);
                 }
             }
         }
-
-        if (checkWin()) {
-            gameOver(true);
-        }
     }
+
+    if (checkWin()) {
+        gameOver(true);
+    }
+}
 
     private int countAdjacentMines(int row, int col) {
         int count = 0;
@@ -159,6 +179,7 @@ public class Minesweeper extends JFrame {
                 }
             }
         }
+        System.out.println("Cell (" + row + ", " + col + ") has " + count + " adjacent mines."); // Debugging
         return count;
     }
 
@@ -204,10 +225,14 @@ public class Minesweeper extends JFrame {
 
     private void restartGame() {
         getContentPane().removeAll(); // Clear the existing content
+        gameStarted = false;          // Reset the game started flag
+        elapsedTime = 0;              // Reset the timer
+        if (timer != null) {
+            timer.stop();             // Stop the timer if it's running
+        }
         setupMenu();                  // Reinitialize the game with a new difficulty
         revalidate();                 // Refresh the UI
-        repaint();
-        elapsedTime = 0;              // Reset timer
+        repaint();                    // Redraw the window
     }
 
     private class CellClickListener implements ActionListener {
